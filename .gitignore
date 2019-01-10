@@ -1,0 +1,14 @@
+dist
+coverage
+.jest
+.tmp
+
+node_modules
+
+.DS_Store
+.idea
+.vscode
+
+npm-debug.log
+yarn-error.log
+lerna-debug.log

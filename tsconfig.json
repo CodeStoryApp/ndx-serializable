@@ -1,0 +1,6 @@
+{
+  "extends": "ndx-dev-commons/tsconfig.json",
+  "include": [
+    "src/**/*.ts",
+  ]
+}
