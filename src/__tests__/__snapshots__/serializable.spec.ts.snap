@@ -2,21 +2,19 @@
 
 exports[`should convert to serializable data structure 1`] = `
 Object {
-  "documents": Array [
-    Object {
-      "fieldLengths": Array [
-        3,
-        2,
-      ],
-      "id": 1,
-    },
-    Object {
-      "fieldLengths": Array [
-        3,
-        2,
-      ],
-      "id": 2,
-    },
+  "docFieldLengths": Array [
+    Array [
+      3,
+      2,
+    ],
+    Array [
+      3,
+      2,
+    ],
+  ],
+  "docIds": Array [
+    1,
+    2,
   ],
   "fields": Array [
     Object {
@@ -28,205 +26,106 @@ Object {
       "sum": 4,
     },
   ],
-  "root": Object {
-    "charCode": 0,
-    "children": Array [
-      Object {
-        "charCode": 105,
-        "children": Array [
-          Object {
-            "charCode": 112,
-            "children": Array [
-              Object {
-                "charCode": 115,
-                "children": Array [
-                  Object {
-                    "charCode": 117,
-                    "children": Array [
-                      Object {
-                        "charCode": 109,
-                        "postings": Array [
-                          Object {
-                            "id": 2,
-                            "termFrequency": Array [
-                              0,
-                              1,
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
+  "postings": Array [
+    Array [
+      Array [
+        1,
+        Array [
+          1,
+          0,
         ],
-      },
-      Object {
-        "charCode": 108,
-        "children": Array [
-          Object {
-            "charCode": 111,
-            "children": Array [
-              Object {
-                "charCode": 114,
-                "children": Array [
-                  Object {
-                    "charCode": 101,
-                    "children": Array [
-                      Object {
-                        "charCode": 109,
-                        "postings": Array [
-                          Object {
-                            "id": 2,
-                            "termFrequency": Array [
-                              0,
-                              1,
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      Object {
-        "charCode": 101,
-        "postings": Array [
-          Object {
-            "id": 2,
-            "termFrequency": Array [
-              1,
-              0,
-            ],
-          },
-        ],
-      },
-      Object {
-        "charCode": 100,
-        "postings": Array [
-          Object {
-            "id": 2,
-            "termFrequency": Array [
-              1,
-              0,
-            ],
-          },
-        ],
-      },
-      Object {
-        "charCode": 119,
-        "children": Array [
-          Object {
-            "charCode": 111,
-            "children": Array [
-              Object {
-                "charCode": 114,
-                "children": Array [
-                  Object {
-                    "charCode": 108,
-                    "children": Array [
-                      Object {
-                        "charCode": 100,
-                        "postings": Array [
-                          Object {
-                            "id": 1,
-                            "termFrequency": Array [
-                              0,
-                              1,
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      Object {
-        "charCode": 104,
-        "children": Array [
-          Object {
-            "charCode": 101,
-            "children": Array [
-              Object {
-                "charCode": 108,
-                "children": Array [
-                  Object {
-                    "charCode": 108,
-                    "children": Array [
-                      Object {
-                        "charCode": 111,
-                        "postings": Array [
-                          Object {
-                            "id": 1,
-                            "termFrequency": Array [
-                              0,
-                              1,
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      Object {
-        "charCode": 99,
-        "postings": Array [
-          Object {
-            "id": 2,
-            "termFrequency": Array [
-              1,
-              0,
-            ],
-          },
-          Object {
-            "id": 1,
-            "termFrequency": Array [
-              1,
-              0,
-            ],
-          },
-        ],
-      },
-      Object {
-        "charCode": 98,
-        "postings": Array [
-          Object {
-            "id": 1,
-            "termFrequency": Array [
-              1,
-              0,
-            ],
-          },
-        ],
-      },
-      Object {
-        "charCode": 97,
-        "postings": Array [
-          Object {
-            "id": 1,
-            "termFrequency": Array [
-              1,
-              0,
-            ],
-          },
-        ],
-      },
+      ],
     ],
-  },
+    Array [
+      Array [
+        1,
+        Array [
+          1,
+          0,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        1,
+        Array [
+          1,
+          0,
+        ],
+      ],
+      Array [
+        2,
+        Array [
+          1,
+          0,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        1,
+        Array [
+          0,
+          1,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        1,
+        Array [
+          0,
+          1,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        2,
+        Array [
+          1,
+          0,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        2,
+        Array [
+          1,
+          0,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        2,
+        Array [
+          0,
+          1,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        2,
+        Array [
+          0,
+          1,
+        ],
+      ],
+    ],
+  ],
+  "terms": Array [
+    "a",
+    "b",
+    "c",
+    "hello",
+    "world",
+    "d",
+    "e",
+    "lorem",
+    "ipsum",
+  ],
 }
 `;

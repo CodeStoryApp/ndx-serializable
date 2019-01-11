@@ -1,4 +1,7 @@
-import { Index, DocumentDetails, FieldDetails, InvertedIndexNode, DocumentPointer } from "ndx";
+import {
+  Index, DocumentDetails, FieldDetails, InvertedIndexNode, createInvertedIndexNode,
+  addInvertedIndexChildNode, findInvertedIndexChildNodeByCharCode, addInvertedIndexPosting,
+} from "ndx";
 
 /**
  * Serializable Document ID.
@@ -8,17 +11,33 @@ export type SerializableDocumentId = string | number;
 /**
  * Index data structure optimized for serialization.
  *
+ * - `documents` Map is converted into two separate arrays: `docIds` and `docFieldLengths` to optimize for use cases
+ * when document IDs are using number values. See [Element kinds in V8](https://v8.dev/blog/elements-kinds) for more
+ * details.
+ * - Inverted index trie is flattened and converted into two separate arrays: `terms` and `postings` to make sure that
+ * gzip could compress common prefixes for terms.
+ * - Frequenlty used objects are converted into arrays to reduce work for serializers/deserializers that encode propery
+ * names.
+ *
  * @typeparam I Document ID type.
  */
 export interface SerializableIndex<I extends SerializableDocumentId> {
   /**
-   * Additional information about documents.
+   * Document ids.
    */
-  documents: DocumentDetails<I>[];
+  docIds: I[];
   /**
-   * Inverted index root node.
+   * Document field lengths.
    */
-  root: SerializableInvertedIndexNode<I>;
+  docFieldLengths: number[][];
+  /**
+   * Inverted index terms.
+   */
+  terms: string[];
+  /**
+   * Inverted index postings.
+   */
+  postings: SerializableDocumentPointer<I>[][];
   /**
    * Additional information about indexed fields in all documents.
    */
@@ -26,42 +45,11 @@ export interface SerializableIndex<I extends SerializableDocumentId> {
 }
 
 /**
- * Document pointer contains information about term frequency for a document.
+ * Document pointer contains document ID and term frequency.
  *
  * @typeparam I Document ID type.
  */
-export interface SerializableDocumentPointer<I extends SerializableDocumentId> {
-  /**
-   * Document ID.
-   */
-  id: I;
-  /**
-   * Term frequency in each field.
-   */
-  termFrequency: number[];
-}
-
-/**
- * Inverted Index Node.
- *
- * Inverted index is implemented with a [trie](https://en.wikipedia.org/wiki/Trie) data structure.
- *
- * @typeparam I Document ID type.
- */
-export interface SerializableInvertedIndexNode<I extends SerializableDocumentId> {
-  /**
-   * Char code is used to store keys in the trie data structure.
-   */
-  charCode: number;
-  /**
-   * Children nodes.
-   */
-  children?: SerializableInvertedIndexNode<I>[];
-  /**
-   * Documents associated with this node.
-   */
-  postings?: SerializableDocumentPointer<I>[];
-}
+export type SerializableDocumentPointer<I extends SerializableDocumentId> = [I, number[]];
 
 /**
  * Converts {@link Index} to {@link SerializableIndex}.
@@ -70,45 +58,65 @@ export interface SerializableInvertedIndexNode<I extends SerializableDocumentId>
  * @returns {@link SerializableIndex}.
  */
 export function toSerializable<I extends SerializableDocumentId>(index: Index<I>): SerializableIndex<I> {
+  const docIds: I[] = [];
+  const docFieldLengths: number[][] = [];
+  index.documents.forEach((d) => {
+    docIds.push(d.id);
+    docFieldLengths.push(d.fieldLengths);
+  });
+
+  const terms: string[] = [];
+  const postings: SerializableDocumentPointer<I>[][] = [];
+
+  // ignore root node
+  let child = index.root.firstChild;
+  if (child !== null) {
+    const term: number[] = [];
+    do {
+      flattenInvertedIndex(child, term, terms, postings);
+      child = child.next;
+    } while (child !== null);
+    terms.reverse();
+    postings.reverse();
+  }
+
   return {
-    documents: Array.from(index.documents.values()),
-    root: toSerializableInvertedIndexNode(index.root),
+    docIds,
+    docFieldLengths,
+    terms,
+    postings,
     fields: index.fields,
   };
 }
 
-function toSerializableInvertedIndexNode<I extends SerializableDocumentId>(
+function flattenInvertedIndex<I extends SerializableDocumentId>(
   node: InvertedIndexNode<I>,
-): SerializableInvertedIndexNode<I> {
-  const r: SerializableInvertedIndexNode<I> = { charCode: node.charCode };
-  let child = node.firstChild;
-  if (child !== null) {
-    const children: SerializableInvertedIndexNode<I>[] = r.children = [];
-    do {
-      children.push(toSerializableInvertedIndexNode(child));
-      child = child.next;
-    } while (child !== null);
-  }
+  term: number[],
+  terms: string[],
+  postings: SerializableDocumentPointer<I>[][],
+): void {
+  term = term.slice();
+  term.push(node.charCode);
 
   let posting = node.firstPosting;
   if (posting !== null) {
-    const postings: SerializableDocumentPointer<I>[] = r.postings = [];
+    terms.push(String.fromCharCode.apply(void 0, term));
+    const p: SerializableDocumentPointer<I>[] = [];
     do {
-      postings.push(toSerializableDocumentPointer(posting));
+      p.push([posting.details.id, posting.termFrequency]);
       posting = posting.next;
     } while (posting !== null);
+    p.reverse();
+    postings.push(p);
   }
 
-  return r;
-}
-
-function toSerializableDocumentPointer<I extends SerializableDocumentId>(
-  posting: DocumentPointer<I>,
-): SerializableDocumentPointer<I> {
-  return {
-    id: posting.details.id,
-    termFrequency: posting.termFrequency,
-  };
+  let child = node.firstChild;
+  if (child !== null) {
+    do {
+      flattenInvertedIndex(child, term, terms, postings);
+      child = child.next;
+    } while (child !== null);
+  }
 }
 
 /**
@@ -119,74 +127,67 @@ function toSerializableDocumentPointer<I extends SerializableDocumentId>(
  */
 export function fromSerializable<I extends SerializableDocumentId>(index: SerializableIndex<I>): Index<I> {
   const documents = new Map<I, DocumentDetails<I>>();
-  const serializedDocuments = index.documents;
-  for (let i = 0; i < serializedDocuments.length; i++) {
-    const d = serializedDocuments[i];
-    documents.set(d.id, d);
+  const { docIds, docFieldLengths, terms, postings, fields } = index;
+  for (let i = 0; i < docIds.length; i++) {
+    const id = docIds[i];
+    documents.set(id, { id, fieldLengths: docFieldLengths[i] });
   }
-  return {
-    documents,
-    root: fromSerializableInvertedIndexNode(index.root, documents),
-    fields: index.fields,
-  };
+
+  const root = createInvertedIndexNode<I>(0);
+
+  for (let i = 0; i < terms.length; i++) {
+    const term = terms[i];
+    const ps = postings[i];
+
+    let node = root;
+
+    for (let j = 0; j < term.length; j++) {
+      if (node.firstChild === null) {
+        node = createInvertedIndexNodes(node, term, j);
+        break;
+      }
+      const nextNode = findInvertedIndexChildNodeByCharCode(node, term.charCodeAt(j));
+      if (nextNode === void 0) {
+        node = createInvertedIndexNodes(node, term, j);
+        break;
+      }
+      node = nextNode;
+    }
+
+    for (let j = 0; j < ps.length; j++) {
+      const p = ps[j];
+      addInvertedIndexPosting(
+        node,
+        {
+          next: null,
+          details: documents.get(p[0])!,
+          termFrequency: p[1],
+        },
+      );
+    }
+  }
+
+  return { documents, root, fields };
 }
 
-function fromSerializableInvertedIndexNode<I extends SerializableDocumentId>(
-  node: SerializableInvertedIndexNode<I>,
-  documents: Map<I, DocumentDetails<I>>,
+/**
+ * Creates inverted index nodes for the `term` starting from the `start` character.
+ *
+ * @typeparam I Document ID type.
+ * @param parent Parent node.
+ * @param term Term.
+ * @param start First char code position in the `term`.
+ * @returns Leaf {@link InvertedIndexNode}.
+ */
+function createInvertedIndexNodes<I>(
+  parent: InvertedIndexNode<I>,
+  term: string,
+  start: number,
 ): InvertedIndexNode<I> {
-  const { charCode, children, postings } = node;
-  return {
-    charCode,
-    next: null,
-    firstChild: fromSerializableInvertedIndexChildrenArray(children, documents),
-    firstPosting: fromSerializableDocumentPointerArray(postings, documents),
-  };
-}
-
-function fromSerializableInvertedIndexChildrenArray<I extends SerializableDocumentId>(
-  children: SerializableInvertedIndexNode<I>[] | undefined,
-  documents: Map<I, DocumentDetails<I>>,
-): InvertedIndexNode<I> | null {
-  if (children === void 0) {
-    return null;
+  for (; start < term.length; start++) {
+    const newNode = createInvertedIndexNode<I>(term.charCodeAt(start));
+    addInvertedIndexChildNode(parent, newNode);
+    parent = newNode;
   }
-  let first: InvertedIndexNode<I> | null = null;
-  let prev: InvertedIndexNode<I> | null = null;
-  for (let i = 0; i < children.length; i++) {
-    const n = fromSerializableInvertedIndexNode(children[i], documents);
-    if (prev !== null) {
-      prev.next = n;
-      prev = n;
-    } else {
-      first = prev = n;
-    }
-  }
-  return first;
-}
-
-function fromSerializableDocumentPointerArray<I extends SerializableDocumentId>(
-  postings: SerializableDocumentPointer<I>[] | undefined,
-  documents: Map<I, DocumentDetails<I>>,
-): DocumentPointer<I> | null {
-  if (postings === void 0) {
-    return null;
-  }
-  let first: DocumentPointer<I> | null = null;
-  let prev: DocumentPointer<I> | null = null;
-  for (let i = 0; i < postings.length; i++) {
-    const p = postings[i];
-    const n: DocumentPointer<I> = {
-      next: null,
-      details: documents.get(p.id)!,
-      termFrequency: p.termFrequency,
-    };
-    if (prev !== null) {
-      prev.next = n;
-      prev = n;
-    } else {
-      first = prev = n;
-    }
-  }
-  return first;
+  return parent;
 }
