@@ -7,8 +7,8 @@ Serializable data structures for [ndx](https://github.com/ndx-search/ndx) librar
 There are two simple functions that converts `Index` data structure to serializable object and from serializable object:
 
 ```ts
-function toSerializable<I extends SerializableDocumentId>(index: Index<I>): SerializableIndex<I>;
-function fromSerializable<I extends SerializableDocumentId>(index: SerializableIndex<I>): Index<I>;
+function toSerializable<T extends SerializableDocumentKey>(index: Index<T>): SerializableIndex<T>;
+function fromSerializable<T extends SerializableDocumentKey>(index: SerializableIndex<T>): Index<T>;
 ```
 
 ### Example

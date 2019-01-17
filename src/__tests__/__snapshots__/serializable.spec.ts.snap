@@ -12,9 +12,99 @@ Object {
       2,
     ],
   ],
-  "docIds": Array [
+  "docKeys": Array [
     1,
     2,
+  ],
+  "docs": Array [
+    Array [
+      Array [
+        1,
+        Array [
+          1,
+          0,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        1,
+        Array [
+          1,
+          0,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        1,
+        Array [
+          1,
+          0,
+        ],
+      ],
+      Array [
+        2,
+        Array [
+          1,
+          0,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        1,
+        Array [
+          0,
+          1,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        1,
+        Array [
+          0,
+          1,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        2,
+        Array [
+          1,
+          0,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        2,
+        Array [
+          1,
+          0,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        2,
+        Array [
+          0,
+          1,
+        ],
+      ],
+    ],
+    Array [
+      Array [
+        2,
+        Array [
+          0,
+          1,
+        ],
+      ],
+    ],
   ],
   "fields": Array [
     Object {
@@ -25,96 +115,6 @@ Object {
       "avg": 2,
       "sum": 4,
     },
-  ],
-  "postings": Array [
-    Array [
-      Array [
-        1,
-        Array [
-          1,
-          0,
-        ],
-      ],
-    ],
-    Array [
-      Array [
-        1,
-        Array [
-          1,
-          0,
-        ],
-      ],
-    ],
-    Array [
-      Array [
-        1,
-        Array [
-          1,
-          0,
-        ],
-      ],
-      Array [
-        2,
-        Array [
-          1,
-          0,
-        ],
-      ],
-    ],
-    Array [
-      Array [
-        1,
-        Array [
-          0,
-          1,
-        ],
-      ],
-    ],
-    Array [
-      Array [
-        1,
-        Array [
-          0,
-          1,
-        ],
-      ],
-    ],
-    Array [
-      Array [
-        2,
-        Array [
-          1,
-          0,
-        ],
-      ],
-    ],
-    Array [
-      Array [
-        2,
-        Array [
-          1,
-          0,
-        ],
-      ],
-    ],
-    Array [
-      Array [
-        2,
-        Array [
-          0,
-          1,
-        ],
-      ],
-    ],
-    Array [
-      Array [
-        2,
-        Array [
-          0,
-          1,
-        ],
-      ],
-    ],
   ],
   "terms": Array [
     "a",

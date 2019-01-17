@@ -1,5 +1,4 @@
-import { createIndex } from "ndx";
-import { addDocumentToIndex } from "ndx-index";
+import { createIndex, addDocumentToIndex } from "ndx";
 import { toSerializable, fromSerializable } from "..";
 
 const tokenizer = (s: string) => s.split(" ");
